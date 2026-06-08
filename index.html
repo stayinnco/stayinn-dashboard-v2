@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- stayinn-dashboard v5-perfis -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -2613,6 +2614,7 @@ document.getElementById('unidade-input').addEventListener('blur', saveState);
 document.getElementById('periodo-input').addEventListener('blur', saveState);
 
 loadSettings();
+renderProfileSelect();
 if (!loadState()) {
   document.getElementById('dashboard').innerHTML = emptyState();
 } else {
