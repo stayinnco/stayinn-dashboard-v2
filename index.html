@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stay Inn • Dashboard de Reservas</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #0F2747; --navy-light: #1E3A5F; --gold: #C8A95E; --gold-soft: #E5D9B8;
+    --bg: #F4F6F9; --card: #FFFFFF; --text: #1A1A2E; --muted: #6B7280;
+    --border: #E5E7EB; --success: #2D7A4F; --success-soft: #D4EDDA;
+    --warning: #D4A03E; --warning-soft: #FFF3CD; --danger: #B83A3A;
+    --danger-soft: #F8D7DA; --info: #1976D2; --info-soft: #D1ECF1;
+    --gray-soft: #E2E3E5; --purple-soft: #E2DBF0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  .container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: white; padding: 36px 44px; border-radius: 16px; margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(15,39,71,0.16); position: relative;
+  }
+  .hero .brand {
+    font-size: 11px; letter-spacing: 3px; color: var(--gold);
+    font-weight: 600; margin-bottom: 6px; text-transform: uppercase;
+  }
+  .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .hero h1 [contenteditable] {
+    border-bottom: 2px dashed rgba(200,169,94,0.3);
+    padding: 0 4px; outline: none; min-width: 200px; display: inline-block;
+  }
+  .hero h1 [contenteditable]:focus { border-bottom-color: var(--gold); }
+  .hero h1 [contenteditable]:empty:before { content: attr(data-placeholder); color: rgba(255,255,255,0.4); }
+  .hero .period {
+    margin-top: 12px; display: inline-block; padding: 6px 14px;
+    background: rgba(200,169,94,0.18); border: 1px solid var(--gold);
+    border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--gold);
+  }
+  .hero .period [contenteditable] { outline: none; min-width: 100px; display: inline-block; }
+  .hero .period [contenteditable]:empty:before { content: attr(data-placeholder); color: rgba(200,169,94,0.5); }
+  .hero-actions {
+    position: absolute; top: 24px; right: 24px; display: flex; gap: 8px;
+  }
+  .hero-actions button {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(200,169,94,0.3);
+    color: white; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    font-size: 12px; font-weight: 600; transition: all 0.2s;
+  }
+  .hero-actions button:hover { background: rgba(200,169,94,0.2); }
+
+  /* Upload zone */
+  .upload-zone {
+    background: white; border-radius: 12px; padding: 28px; margin-bottom: 20px;
+    border: 2px dashed var(--border); transition: all 0.2s; text-align: center;
+  }
+  .upload-zone:hover, .upload-zone.dragging {
+    border-color: var(--gold); background: #FFFCF5;
+  }
+  .upload-zone.has-data { border-color: var(--success); border-style: solid; background: white; text-align: left; padding: 18px 24px; }
+  .upload-icon { font-size: 36px; margin-bottom: 8px; opacity: 0.6; }
+  .upload-title { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .upload-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .upload-zone.has-data .upload-icon { font-size: 20px; display: inline; margin-right: 8px; }
+  .upload-zone.has-data .upload-title { display: inline; color: var(--success); }
+  .upload-actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .upload-zone.has-data .upload-actions { justify-content: flex-start; margin-top: 12px; }
+
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 8px; font-weight: 600;
+    font-size: 13px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--navy); color: white; }
+  .btn-primary:hover { background: var(--navy-light); }
+  .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: white; }
+  .btn-gold { background: var(--gold); color: var(--navy); }
+  .btn-gold:hover { background: #d6b770; }
+  .btn-danger { background: white; color: var(--danger); border: 1px solid var(--danger-soft); }
+  .btn-danger:hover { background: var(--danger-soft); }
+
+  /* Settings panel */
+  .settings-panel {
+    background: white; border-radius: 12px; margin-bottom: 20px;
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .settings-header {
+    padding: 16px 22px; cursor: pointer; display: flex;
+    justify-content: space-between; align-items: center;
+    background: linear-gradient(to right, #FAFBFC, white);
+  }
+  .settings-header h3 {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--navy);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .settings-header h3::before {
+    content: ''; width: 8px; height: 8px;
+    background: var(--gold); border-radius: 50%;
+  }
+  .settings-body { padding: 22px 24px; border-top: 1px solid var(--border); display: none; }
+  .settings-body.open { display: block; }
+  .toggle-icon { color: var(--muted); font-size: 14px; transition: transform 0.2s; }
+  .toggle-icon.open { transform: rotate(180deg); }
+
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .settings-group h4 {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-bottom: 12px;
+  }
+  .settings-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .settings-row label {
+    font-size: 13px; color: var(--text); flex: 1;
+  }
+  .settings-row input {
+    padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; width: 80px; text-align: center;
+  }
+  .settings-row input:focus { outline: none; border-color: var(--navy); }
+  .royalty-big {
+    background: linear-gradient(135deg, #FFFCF5, #FFF8E5);
+    border: 2px solid var(--gold); border-radius: 12px;
+    padding: 18px 22px; margin-bottom: 16px;
+  }
+  .royalty-big label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--navy); display: block; margin-bottom: 8px;
+  }
+  .royalty-big input {
+    font-size: 32px; font-weight: 700; color: var(--navy);
+    width: 100px; padding: 4px 8px; border: none; background: transparent;
+    text-align: center; border-bottom: 2px solid var(--gold);
+  }
+  .royalty-big .pct { font-size: 28px; font-weight: 700; color: var(--navy); }
+  .royalty-big small { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+
+  .channels-table { width: 100%; font-size: 13px; }
+  .channels-table th {
+    text-align: left; padding: 8px 10px; font-size: 11px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  .channels-table th.center { text-align: center; }
+  .channels-table td { padding: 6px 8px; border-bottom: 1px solid #F0F0F0; }
+  .channels-table td.center { text-align: center; }
+  .channels-table input[type="text"] {
+    width: 100%; padding: 4px 8px; border: 1px solid transparent;
+    border-radius: 4px; font-size: 13px; background: transparent;
+  }
+  .channels-table input[type="text"]:focus, .channels-table input[type="text"]:hover {
+    border-color: var(--border); background: white; outline: none;
+  }
+  .channels-table input[type="number"] {
+    width: 60px; padding: 4px 6px; border: 1px solid var(--border);
+    border-radius: 4px; font-size: 12px; text-align: center;
+  }
+  .channels-table .checkbox-cell { text-align: center; }
+  .channels-table input[type="checkbox"] {
+    width: 16px; height: 16px; accent-color: var(--navy);
+  }
+  .channels-table .remove-btn {
+    background: none; border: none; color: var(--danger);
+    cursor: pointer; font-size: 14px; padding: 0 6px;
+  }
+  .add-channel-btn {
+    margin-top: 10px; padding: 6px 12px; background: var(--bg);
+    border: 1px dashed var(--border); border-radius: 6px;
+    color: var(--navy); cursor: pointer; font-size: 12px; font-weight: 600;
+  }
+  .add-channel-btn:hover { background: #ECEEF2; border-color: var(--navy); }
+
+  /* KPIs */
+  .kpis {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: white; border-radius: 12px; padding: 18px 22px;
+    border: 1px solid var(--border); border-top: 3px solid var(--gold);
+    transition: transform 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(15,39,71,0.08); }
+  .kpi-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+  }
+  .kpi-value { font-size: 28px; font-weight: 700; color: var(--navy); letter-spacing: -0.8px; }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* Sections */
+  .section {
+    background: white; border-radius: 12px; padding: 22px 24px;
+    margin-bottom: 18px; border: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--navy);
+    padding-bottom: 12px; margin-bottom: 14px;
+    border-bottom: 2px solid var(--gold-soft);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::before {
+    content: ''; width: 8px; height: 8px;
+    background: var(--gold); border-radius: 50%;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left; padding: 9px 11px; font-size: 11px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--muted); border-bottom: 2px solid var(--border);
+    background: #FAFBFC;
+  }
+  thead th.right { text-align: right; } thead th.center { text-align: center; }
+  tbody td { padding: 9px 11px; border-bottom: 1px solid var(--border); }
+  tbody td.right { text-align: right; } tbody td.center { text-align: center; }
+  tbody tr:hover { background: #FAFBFC; }
+  tbody tr.total {
+    font-weight: 700; background: #F4F6F9; color: var(--navy);
+  }
+  tbody tr.total td {
+    border-top: 2px solid var(--gold); border-bottom: none;
+  }
+  .bar-cell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .mini-bar {
+    flex: 0 0 60px; height: 6px; background: var(--border); border-radius: 3px;
+    overflow: hidden;
+  }
+  .mini-bar-fill { height: 100%; background: var(--gold); border-radius: 3px; }
+  .chart-container { position: relative; height: 280px; }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 11px; font-weight: 600; }
+  .badge-success { background: var(--success-soft); color: #155724; }
+  .badge-warning { background: var(--warning-soft); color: #856404; }
+  .badge-info { background: var(--info-soft); color: #0C5460; }
+  .badge-danger { background: var(--danger-soft); color: #721C24; }
+  .badge-gray { background: var(--gray-soft); color: #383D41; }
+  .badge-purple { background: var(--purple-soft); color: #3C3489; }
+
+  /* Stayinn section */
+  .stayinn {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: white; border-radius: 12px; padding: 26px; margin-bottom: 18px;
+  }
+  .stayinn .section-title { color: var(--gold); border-bottom-color: rgba(200,169,94,0.3); }
+  .stayinn-cards {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+  }
+  .stayinn-card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(200,169,94,0.25);
+    border-radius: 10px; padding: 16px;
+  }
+  .stayinn-card .label {
+    font-size: 11px; color: var(--gold); font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .stayinn-card .value { font-size: 28px; font-weight: 700; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    background: white; border-radius: 12px; border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--navy); color: white; padding: 14px 22px;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    font-size: 13px; font-weight: 600;
+    opacity: 0; transform: translateY(20px); pointer-events: none;
+    transition: all 0.3s; z-index: 1000;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+
+  .footer {
+    text-align: center; padding: 24px; color: var(--muted);
+    font-size: 12px; margin-top: 24px;
+  }
+
+  /* Profiles */
+  .profile-bar {
+    background: white; border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 20px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .profile-bar label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .profile-select {
+    flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 14px; background: white; cursor: pointer;
+  }
+  .profile-select:focus { outline: none; border-color: var(--gold); }
+  .profile-actions { display: flex; gap: 8px; }
+  .btn-save-profile {
+    background: var(--navy); color: white; border: none; padding: 8px 16px;
+    border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .btn-save-profile:hover { background: var(--navy-light); }
+  .btn-del-profile {
+    background: white; color: var(--danger); border: 1px solid var(--danger);
+    padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;
+  }
+  .btn-del-profile:hover { background: var(--danger-soft); }
+  @media print {
+    .profile-bar { display: none !important; }
+  }
+
+  @media print {
+    .upload-zone, .settings-panel, .hero-actions, .footer { display: none !important; }
+    .container { max-width: 100%; padding: 0; }
+    body { background: white; }
+    .section, .kpi-card { box-shadow: none; }
+    .hero { background: var(--navy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stayinn { background: var(--navy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  @media (max-width: 900px) {
+    .kpis, .stayinn-cards { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .settings-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <div class="brand">Stay Inn</div>
+    <h1><span id="unidade-input" contenteditable="true" data-placeholder="[ Nome da unidade ]"></span></h1>
+    <div class="period">📅 <span id="periodo-input" contenteditable="true" data-placeholder="ex: Setembro/2024"></span></div>
+    <div class="hero-actions no-print">
+      <button onclick="toggleSettings()">⚙️ Configurações</button>
+      <button onclick="window.print()">🖨️ Imprimir / PDF</button>
+    </div>
+  </div>
+
+  <div class="profile-bar no-print">
+    <label>🏨 Unidade:</label>
+    <select class="profile-select" id="profileSelect" onchange="loadProfile(this.value)">
+      <option value="">— selecionar perfil salvo —</option>
+    </select>
+    <div class="profile-actions">
+      <button class="btn-save-profile" onclick="saveProfile()">💾 Salvar perfil atual</button>
+      <button class="btn-del-profile" onclick="deleteProfile()" title="Excluir perfil selecionado">🗑️</button>
+    </div>
+  </div>
+
+  <div class="upload-zone" id="uploadZone">
+    <div id="uploadDefault">
+      <div class="upload-icon">📥</div>
+      <div class="upload-title">Faça upload do CSV do HQBeds</div>
+      <div class="upload-subtitle">Arraste o arquivo aqui ou clique no botão abaixo<br>(o arquivo .csv que você baixa direto do HQBeds)</div>
+      <div class="upload-actions">
+        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📁 Selecionar arquivo CSV</button>
+        <button class="btn btn-secondary" onclick="loadExemplo()">Ver exemplo</button>
+      </div>
+      <input type="file" id="fileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
+    </div>
+    <div id="uploadSuccess" style="display:none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <span class="upload-icon" style="color: var(--success)">✓</span>
+          <span class="upload-title" id="loadedInfo"></span>
+        </div>
+        <div class="upload-actions">
+          <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">🔄 Trocar arquivo</button>
+          <button class="btn btn-danger" onclick="limpar()">Limpar tudo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-header" onclick="toggleSettings()">
+      <h3>⚙️ Configurações de taxas e capacidade</h3>
+      <span class="toggle-icon" id="toggleIcon">▼</span>
+    </div>
+    <div class="settings-body" id="settingsBody">
+
+      <div class="royalty-big">
+        <label>Royalty Stayinn (% sobre líquido)</label>
+        <input type="number" id="royaltyInput" value="7" min="0" max="100" step="0.1" onchange="saveSettings(); renderAll();">
+        <span class="pct">%</span>
+        <small>Esta é a porcentagem que a Stayinn cobra. Aplica nos canais marcados como "tem royalty" na tabela abaixo. Ajuste por cliente.</small>
+      </div>
+
+      <div class="settings-grid">
+        <div class="settings-group">
+          <h4>Canais e comissões</h4>
+          <table class="channels-table">
+            <thead>
+              <tr>
+                <th>Canal</th>
+                <th class="center">% Comissão</th>
+                <th class="center">Tem royalty?</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="channelsBody"></tbody>
+          </table>
+          <button class="add-channel-btn" onclick="addChannel()">+ adicionar canal</button>
+        </div>
+
+        <div class="settings-group">
+          <h4>Capacidade da unidade</h4>
+          <div class="settings-row">
+            <label>Total de unidades / camas:</label>
+            <input type="number" id="capacityInput" value="" min="0" onchange="saveSettings(); renderAll();">
+          </div>
+          <div class="settings-row">
+            <label>Dias no período (mês):</label>
+            <input type="number" id="daysInput" value="30" min="1" max="31" onchange="saveSettings(); renderAll();">
+          </div>
+          <div class="settings-row" style="border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px;">
+            <label style="color: var(--muted);">Total room-nights disponíveis:</label>
+            <span id="totalRoomNights" style="font-weight: 700; color: var(--navy);">—</span>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <button class="btn btn-secondary" onclick="resetSettings()" style="font-size: 12px; padding: 6px 12px;">Restaurar padrão</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dashboard"></div>
+
+  <div class="footer">
+    <strong>Stay Inn</strong> · Dashboard de Reservas · Sobe o CSV e tudo se atualiza
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ============= STATE =============
+const STORAGE_KEY = 'stayinn_v4';
+const SETTINGS_KEY = 'stayinn_settings_v4';
+let reservas = [];
+
+const defaultChannels = [
+  // HQBeds direto
+  { canal: 'hqb2',             comissao: 0,   royalty: true },
+  { canal: 'hw2',              comissao: 0,   royalty: true },
+  // OTAs
+  { canal: 'boo',              comissao: 13,  royalty: true },  // Booking
+  { canal: 'exp',              comissao: 0,   royalty: true },  // Expedia (desconta na fonte)
+  { canal: 'air',              comissao: 0,   royalty: true },  // Airbnb
+  { canal: 'deco',             comissao: 0,   royalty: true },  // Decolar (desconta na fonte)
+  { canal: 'other',            comissao: 0,   royalty: false }, // Direto sem intermediário
+  { canal: 'website',          comissao: 0,   royalty: true },  // Site próprio
+  // Canais com intermediário
+  { canal: 'callcenter',       comissao: 3,   royalty: true },
+  { canal: 'callce',           comissao: 3,   royalty: true },  // callcenter abreviado
+  { canal: 'googlehotel',      comissao: 0,   royalty: true },
+  { canal: 'centra_reservas',  comissao: 3,   royalty: true },
+  { canal: 'centra_de_reserv', comissao: 3,   royalty: true },
+  // Direto sem royalty
+  { canal: 'walkin',           comissao: 0,   royalty: false },
+  { canal: 'whatsapp',         comissao: 0,   royalty: false },
+  { canal: 'recomendation',    comissao: 0,   royalty: false },
+  { canal: 'bnw',              comissao: 0,   royalty: false }, // sem royalty
+  { canal: 'Outros',           comissao: 0,   royalty: false },
+];
+
+let settings = {
+  royalty: 7,
+  capacity: 0,
+  days: 30,
+  channels: JSON.parse(JSON.stringify(defaultChannels)),
+};
+
+// Normaliza status pra aceitar variantes (ex: "No Show", "no-show", "NoShow")
+function normStatus(s) {
+  return (s || '').toString().toLowerCase().replace(/[\s\-_]/g, '');
+}
+const statusBadgeMap = {
+  'nova': 'badge-purple', 'confirmada': 'badge-info',
+  'emanalise': 'badge-warning',
+  'hospedado': 'badge-success', 'encerrada': 'badge-gray',
+  'cancelada': 'badge-danger', 'noshow': 'badge-danger',
+  'cancelada/canceladapormodificação': 'badge-danger',
+};
+function statusBadgeFor(s) { return statusBadgeMap[normStatus(s)] || 'badge-gray'; }
+// Só exclui canceladas — No Show, Hospedado, Encerrada, Nova etc. entram
+function isInativo(s) {
+  const n = normStatus(s);
+  return n === 'cancelada' || n === 'canceladapormodificacao' || n === 'canceladamodificacao';
+}
+
+// ============= UTILITIES =============
+function num(x) {
+  if (x === null || x === undefined || x === '') return 0;
+  if (typeof x === 'number') return x;
+  let s = String(x).trim().replace(/R\$\s*/g, '').replace(/\s/g, '');
+  if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '').replace(',', '.');
+  else if (s.includes(',')) s = s.replace(',', '.');
+  const v = parseFloat(s);
+  return isNaN(v) ? 0 : v;
+}
+
+function parseData(x) {
+  if (!x) return null;
+  if (x instanceof Date) return x;
+  const s = String(x).trim();
+  const m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if (m) {
+    let [, d, mo, y] = m;
+    if (y.length === 2) y = '20' + y;
+    return new Date(parseInt(y), parseInt(mo) - 1, parseInt(d));
+  }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+const brl = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const brl2 = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============= CSV PARSING =============
+function parseCSVLine(line) {
+  const fields = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (c === ';' && !inQuotes) {
+      fields.push(current); current = '';
+    } else current += c;
+  }
+  fields.push(current);
+  return fields;
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length === 0) return [];
+  const headers = parseCSVLine(lines[0]).map(h => h.trim().replace(/^"|"$/g, ''));
+
+  // Posições das colunas do HQBeds
+  const idx = {
+    reserva: headers.findIndex(h => h.toLowerCase() === 'reserva'),
+    de: headers.findIndex(h => h.toLowerCase() === 'de'),
+    ate: headers.findIndex(h => h.toLowerCase() === 'até' || h.toLowerCase() === 'ate'),
+    nome: headers.findIndex(h => h.toLowerCase() === 'nome'),
+    sobrenome: headers.findIndex(h => h.toLowerCase() === 'sobrenome'),
+    total: headers.findIndex(h => h.toLowerCase().includes('total acomoda') && h.toLowerCase().includes('desconto')),
+    pagamentos: headers.findIndex(h => h.toLowerCase() === 'pagamentos'),
+    saldo: headers.findIndex(h => h.toLowerCase() === 'saldo'),
+    origem: headers.findIndex(h => h.toLowerCase() === 'origem'),
+    status: headers.findIndex(h => h.toLowerCase() === 'status'),
+  };
+
+  if (idx.reserva < 0 || idx.total < 0 || idx.origem < 0) {
+    throw new Error('CSV nao parece do HQBeds (colunas esperadas nao encontradas)');
+  }
+
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    if (cols.length < 5) continue;
+    // Ignorar linha de totais do HQBeds (sem número de reserva válido)
+    const numReserva = (cols[idx.reserva] || '').trim();
+    if (!numReserva || isNaN(parseFloat(numReserva))) continue;
+    // Ignorar linhas sem origem (podem ser subtotais ou linhas vazias)
+    const origemVal = (cols[idx.origem] || '').trim();
+    if (!origemVal) continue;
+    out.push({
+      reserva: numReserva,
+      checkin: idx.de >= 0 ? parseData(cols[idx.de]) : null,
+      checkout: idx.ate >= 0 ? parseData(cols[idx.ate]) : null,
+      nome: ((cols[idx.nome] || '') + ' ' + (cols[idx.sobrenome] || '')).trim(),
+      total: num(cols[idx.total]),
+      pagamentos: num(cols[idx.pagamentos]),
+      saldo: num(cols[idx.saldo]),
+      origem: (cols[idx.origem] || '').trim(),
+      status: (cols[idx.status] || '').trim(),
+    });
+  }
+  return out;
+}
+
+// ============= FILE UPLOAD =============
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) loadFile(file);
+}
+
+function loadFile(file) {
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    toast('Por favor, envie um arquivo .csv', 'error');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Tentar primeiro como UTF-8, se falhar como ISO-8859-1
+    let text;
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(e.target.result);
+    } catch {
+      text = new TextDecoder('iso-8859-1').decode(e.target.result);
+    }
+    // Se vier com caracteres ?, refazer com iso-8859-1
+    if (text.includes('�') || text.includes('At?')) {
+      text = new TextDecoder('iso-8859-1').decode(e.target.result);
+    }
+    try {
+      reservas = parseCSV(text);
+      if (reservas.length === 0) {
+        toast('Nenhuma reserva encontrada no arquivo', 'error');
+        return;
+      }
+      saveState();
+      updateUploadUI(file.name);
+      renderAll();
+      toast(`${reservas.length} reservas carregadas`, 'success');
+    } catch (err) {
+      toast('Erro: ' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function updateUploadUI(filename) {
+  document.getElementById('uploadZone').classList.add('has-data');
+  document.getElementById('uploadDefault').style.display = 'none';
+  document.getElementById('uploadSuccess').style.display = 'block';
+  document.getElementById('loadedInfo').textContent =
+    `${reservas.length} reservas carregadas` + (filename ? ` de ${filename}` : '');
+}
+
+// Drag and drop
+const uploadZone = document.getElementById('uploadZone');
+['dragenter', 'dragover'].forEach(evt => {
+  uploadZone.addEventListener(evt, e => {
+    e.preventDefault(); e.stopPropagation();
+    uploadZone.classList.add('dragging');
+  });
+});
+['dragleave', 'drop'].forEach(evt => {
+  uploadZone.addEventListener(evt, e => {
+    e.preventDefault(); e.stopPropagation();
+    uploadZone.classList.remove('dragging');
+  });
+});
+uploadZone.addEventListener('drop', e => {
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+function loadExemplo() {
+  const exemploCSV = `Reserva;Data;De;Até;Quarto(s);Nome;Sobrenome;E-Mail;Telefone;País;Idioma;Unidades;Hóspede(s);"Total da Acomodação";"Taxas Adicionais";"Desconto na Acomodação";"Desconto Geral";"Cupom de Desconto";Valor;"Total Acomodação c/ Desconto";"Depósito Booker";Consumação;"Total Geral";Reembolso;Pagamentos;Saldo;Origem;ID;Status;Label;"Vem de onde";"Vai para onde";Usuário
+1001;01/04/2026;01/04/2026;03/04/2026;Quarto;Ariadne;Silva;;;;;1;2;335,00;0;0;0;;0;335,00;0;0;335,00;0;335,00;0;hqb2;;Encerrada;;;;system
+1002;01/04/2026;01/04/2026;03/04/2026;Quarto;Ekin;Turkmen;;;;;1;2;280,00;0;0;0;;0;280,00;0;0;280,00;0;280,00;0;walkin;;Encerrada;;;;system
+1003;02/04/2026;02/04/2026;04/04/2026;Quarto;Carlos;Zoppas;;;;;1;2;420,00;0;0;0;;0;420,00;0;0;420,00;0;420,00;0;boo;;Encerrada;;;;system
+1004;03/04/2026;03/04/2026;05/04/2026;Quarto;Diandra;Santos;;;;;1;2;560,00;0;0;0;;0;560,00;0;0;560,00;0;560,00;0;boo;;Encerrada;;;;system
+1005;05/04/2026;05/04/2026;06/04/2026;Quarto;Julliano;Costa;;;;;1;2;270,00;0;0;0;;0;270,00;0;0;270,00;0;270,00;0;walkin;;Encerrada;;;;system
+1006;06/04/2026;06/04/2026;08/04/2026;Quarto;Pereira;Souza;;;;;1;2;320,00;0;0;0;;0;320,00;0;0;320,00;0;320,00;0;air;;Encerrada;;;;system
+1007;08/04/2026;08/04/2026;10/04/2026;Quarto;Wilmar;Lima;;;;;1;2;180,00;0;0;0;;0;180,00;0;0;180,00;0;180,00;0;whatsapp;;Encerrada;;;;system
+1008;12/04/2026;15/04/2026;17/04/2026;Quarto;Marina;Reis;;;;;1;2;890,00;0;0;0;;0;890,00;0;0;890,00;0;445,00;-445,00;boo;;Confirmada;;;;system
+1009;15/04/2026;15/04/2026;17/04/2026;Quarto;Lucas;Andrade;;;;;1;3;1120,00;0;0;0;;0;1120,00;0;0;1120,00;0;0;-1120,00;boo;;Em analise;;;;system
+1010;20/04/2026;20/04/2026;22/04/2026;Quarto;Cristian;Lopez;;;;;1;2;283,00;0;0;0;;0;283,00;0;0;283,00;0;283,00;0;callcenter;;Encerrada;;;;system`;
+  reservas = parseCSV(exemploCSV);
+  document.getElementById('unidade-input').textContent = 'GRAFFI BEACH';
+  document.getElementById('periodo-input').textContent = 'abril/2026';
+  saveState();
+  updateUploadUI('exemplo.csv');
+  renderAll();
+  toast(`Exemplo carregado: ${reservas.length} reservas`, 'success');
+}
+
+function limpar() {
+  if (!confirm('Limpar todos os dados? (as configurações ficam salvas)')) return;
+  reservas = [];
+  document.getElementById('uploadZone').classList.remove('has-data');
+  document.getElementById('uploadDefault').style.display = 'block';
+  document.getElementById('uploadSuccess').style.display = 'none';
+  document.getElementById('unidade-input').textContent = '';
+  document.getElementById('periodo-input').textContent = '';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('dashboard').innerHTML = emptyState();
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+// ============= SETTINGS =============
+function toggleSettings() {
+  const body = document.getElementById('settingsBody');
+  const icon = document.getElementById('toggleIcon');
+  body.classList.toggle('open');
+  icon.classList.toggle('open');
+}
+
+function renderChannels() {
+  const tbody = document.getElementById('channelsBody');
+  tbody.innerHTML = '';
+  settings.channels.forEach((ch, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${ch.canal}" onchange="updateChannel(${i}, 'canal', this.value)"></td>
+      <td class="center">
+        <input type="number" value="${ch.comissao}" min="0" max="100" step="0.1"
+          onchange="updateChannel(${i}, 'comissao', parseFloat(this.value)||0)"> %
+      </td>
+      <td class="checkbox-cell">
+        <input type="checkbox" ${ch.royalty ? 'checked' : ''}
+          onchange="updateChannel(${i}, 'royalty', this.checked)">
+      </td>
+      <td><button class="remove-btn" onclick="removeChannel(${i})" title="remover">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateChannel(i, field, value) {
+  settings.channels[i][field] = value;
+  saveSettings();
+  renderAll();
+}
+
+function addChannel() {
+  settings.channels.push({ canal: 'novo_canal', comissao: 0, royalty: false });
+  renderChannels();
+  saveSettings();
+}
+
+function removeChannel(i) {
+  if (!confirm(`Remover ${settings.channels[i].canal}?`)) return;
+  settings.channels.splice(i, 1);
+  renderChannels();
+  saveSettings();
+  renderAll();
+}
+
+function resetSettings() {
+  if (!confirm('Restaurar configurações para o padrão? (Stayinn 7%, canais padrão)')) return;
+  settings = {
+    royalty: 7,
+    capacity: settings.capacity,
+    days: settings.days,
+    channels: JSON.parse(JSON.stringify(defaultChannels)),
+  };
+  document.getElementById('royaltyInput').value = 7;
+  renderChannels();
+  saveSettings();
+  renderAll();
+  toast('Configurações restauradas', 'success');
+}
+
+// ============= PROFILES =============
+const PROFILES_KEY = 'stayinn_profiles_v1';
+
+const builtinProfiles = {
+  "Brisas Chalés": {
+    "royalty": 7,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 13,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Chalé Guiados Pelo Alto": {
+    "royalty": 7,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 16,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Estância Nazari": {
+    "royalty": 8,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 16,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Graffi Beach House": {
+    "royalty": 6,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 16,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Graffi City House": {
+    "royalty": 7,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 16,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Happiness House": {
+    "royalty": 8,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 16,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Innbox Canasvieiras Hostel": {
+    "royalty": 7,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 16,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Innbox Canasvieiras Studios": {
+    "royalty": 7,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 16,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Innbox Porto Belo": {
+    "royalty": 6,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 15,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 6,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 6,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 6,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 6,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Lofts Urbano Urubici": {
+    "royalty": 7,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 13,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Pousada Nó de Pinho": {
+    "royalty": 6,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 13,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Pousada Sunset": {
+    "royalty": 6,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 13,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Santê Cabana": {
+    "royalty": 6,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 13,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 4,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Sítios Moriah": {
+    "royalty": 6,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 13,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  },
+  "Tetris Container": {
+    "royalty": 6,
+    "capacity": 0,
+    "days": 30,
+    "channels": [
+      {
+        "canal": "hqb2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "hw2",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "boo",
+        "comissao": 13,
+        "royalty": true
+      },
+      {
+        "canal": "exp",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "air",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "deco",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "other",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "website",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "callcenter",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "callce",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "googlehotel",
+        "comissao": 0,
+        "royalty": true
+      },
+      {
+        "canal": "centra_reservas",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "centra_de_reserv",
+        "comissao": 3,
+        "royalty": true
+      },
+      {
+        "canal": "walkin",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "whatsapp",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "recomendation",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "bnw",
+        "comissao": 0,
+        "royalty": false
+      },
+      {
+        "canal": "Outros",
+        "comissao": 0,
+        "royalty": false
+      }
+    ]
+  }
+};
+
+function getProfiles() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROFILES_KEY)) || {};
+    // Merge built-in profiles with any user-saved ones (user overrides built-in)
+    return { ...builtinProfiles, ...saved };
+  } catch { return builtinProfiles; }
+}
+
+function saveProfiles(profiles) {
+  try { localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles)); } catch {}
+}
+
+function renderProfileSelect() {
+  const profiles = getProfiles();
+  const sel = document.getElementById('profileSelect');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— selecionar perfil salvo —</option>';
+  Object.keys(profiles).sort().forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  if (current) sel.value = current;
+}
+
+function saveProfile() {
+  const unidade = document.getElementById('unidade-input').textContent.trim();
+  const name = unidade || prompt('Nome da unidade para salvar:');
+  if (!name) return;
+  saveSettings();
+  const profiles = getProfiles();
+  profiles[name] = {
+    royalty: settings.royalty,
+    channels: JSON.parse(JSON.stringify(settings.channels)),
+    capacity: settings.capacity,
+    days: settings.days,
+  };
+  saveProfiles(profiles);
+  renderProfileSelect();
+  renderProfileSelect();
+  document.getElementById('profileSelect').value = name;
+  toast('Perfil "' + name + '" salvo!', 'success');
+}
+
+function loadProfile(name) {
+  if (!name) return;
+  const profiles = getProfiles();
+  const p = profiles[name];
+  if (!p) return;
+  settings.royalty = p.royalty;
+  settings.channels = JSON.parse(JSON.stringify(p.channels));
+  if (p.capacity) settings.capacity = p.capacity;
+  if (p.days) settings.days = p.days;
+  document.getElementById('royaltyInput').value = p.royalty;
+  document.getElementById('unidade-input').textContent = name;
+  if (p.capacity) document.getElementById('capacityInput').value = p.capacity;
+  if (p.days) document.getElementById('daysInput').value = p.days;
+  renderChannels();
+  saveSettings();
+  renderAll();
+  toast('Perfil "' + name + '" carregado!', 'success');
+}
+
+function deleteProfile() {
+  const sel = document.getElementById('profileSelect');
+  const name = sel.value;
+  if (!name) { toast('Selecione um perfil para excluir', 'error'); return; }
+  if (!confirm('Excluir perfil "' + name + '"?')) return;
+  const profiles = getProfiles();
+  delete profiles[name];
+  saveProfiles(profiles);
+  renderProfileSelect();
+  toast('Perfil "' + name + '" excluído', 'success');
+}
+
+function loadSettings() {
+  try {
+    const s = localStorage.getItem(SETTINGS_KEY);
+    if (s) settings = { ...settings, ...JSON.parse(s) };
+  } catch {}
+  document.getElementById('royaltyInput').value = settings.royalty;
+  document.getElementById('capacityInput').value = settings.capacity || '';
+  document.getElementById('daysInput').value = settings.days;
+  renderChannels();
+  updateRoomNights();
+}
+
+function saveSettings() {
+  settings.royalty = parseFloat(document.getElementById('royaltyInput').value) || 0;
+  settings.capacity = parseInt(document.getElementById('capacityInput').value) || 0;
+  settings.days = parseInt(document.getElementById('daysInput').value) || 30;
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch {}
+  updateRoomNights();
+}
+
+function updateRoomNights() {
+  const rn = settings.capacity * settings.days;
+  document.getElementById('totalRoomNights').textContent = rn > 0 ? rn.toLocaleString('pt-BR') : '—';
+}
+
+// ============= COMPUTE =============
+function computeRow(r) {
+  const ch = settings.channels.find(c => c.canal.toLowerCase() === (r.origem || '').toLowerCase());
+  const comissaoPct = ch ? ch.comissao : 0;
+  const aplicaRoyalty = ch ? ch.royalty : false;
+
+  const comissao = r.total * (comissaoPct / 100);
+  const liquido = r.total - comissao;
+  const royalties = aplicaRoyalty ? liquido * (settings.royalty / 100) : 0;
+  const stayinn = royalties;
+  return { ...r, comissao, liquido, royalties, stayinn };
+}
+
+// ============= STATE PERSISTENCE =============
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      reservas: reservas.map(r => ({
+        ...r,
+        checkin: r.checkin?.toISOString(),
+        checkout: r.checkout?.toISOString(),
+      })),
+      unidade: document.getElementById('unidade-input').textContent,
+      periodo: document.getElementById('periodo-input').textContent,
+    }));
+  } catch {}
+}
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (!s) return false;
+    const d = JSON.parse(s);
+    if (d.reservas) {
+      reservas = d.reservas.map(r => ({
+        ...r,
+        checkin: r.checkin ? new Date(r.checkin) : null,
+        checkout: r.checkout ? new Date(r.checkout) : null,
+      }));
+    }
+    if (d.unidade) document.getElementById('unidade-input').textContent = d.unidade;
+    if (d.periodo) document.getElementById('periodo-input').textContent = d.periodo;
+    if (reservas.length > 0) {
+      updateUploadUI();
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+// ============= RENDER =============
+function emptyState() {
+  return `<div class="empty-state">
+    <div class="icon">📋</div>
+    <p style="font-size:15px; margin-bottom:6px;"><strong>Nenhum dado ainda</strong></p>
+    <p>Faça upload do CSV do HQBeds acima ou clique em "Ver exemplo".</p>
+  </div>`;
+}
+
+function renderAll() {
+  renderDashboard();
+}
+
+function renderDashboard() {
+  if (reservas.length === 0) {
+    document.getElementById('dashboard').innerHTML = emptyState();
+    return;
+  }
+
+  // Aplicar calculo em cada reserva
+  const dados = reservas.map(computeRow);
+  const ativas = dados.filter(r => !isInativo(r.status));
+  const totalReservas = ativas.length;
+  const receitaBruta = ativas.reduce((s, r) => s + r.total, 0);
+  const totalNoites = ativas.reduce((s, r) => {
+    if (r.checkin && r.checkout)
+      return s + Math.max(0, Math.round((r.checkout - r.checkin) / 86400000));
+    return s;
+  }, 0);
+  const adr = totalNoites > 0 ? receitaBruta / totalNoites : 0;
+  const totalRoomNights = settings.capacity * settings.days;
+  const ocupacao = totalRoomNights > 0 ? (totalNoites / totalRoomNights) * 100 : 0;
+
+  // Por canal
+  const byCanal = {};
+  dados.forEach(r => {
+    const k = r.origem || '(sem canal)';
+    if (!byCanal[k]) byCanal[k] = { reservas: 0, receita: 0, comissao: 0, liquido: 0, royalties: 0 };
+    byCanal[k].reservas++;
+    if (!isInativo(r.status)) {
+      byCanal[k].receita += r.total;
+      byCanal[k].comissao += r.comissao;
+      byCanal[k].liquido += r.liquido;
+      byCanal[k].royalties += r.royalties;
+    }
+  });
+  const canais = Object.entries(byCanal).sort((a,b) => b[1].reservas - a[1].reservas);
+  const totalCanalReservas = canais.reduce((s, [,v]) => s + v.reservas, 0);
+  const totalCanalReceita = canais.reduce((s, [,v]) => s + v.receita, 0);
+  const maxCanal = canais[0]?.[1].reservas || 1;
+
+  // Por status
+  const byStatus = {};
+  dados.forEach(r => {
+    // Agrupar "Cancelada por Modificação" junto com "Cancelada"
+    let k = r.status || '(sem status)';
+    const kNorm = normStatus(k);
+    if (kNorm === 'canceladapormodificacao' || kNorm === 'canceladamodificacao') k = 'Cancelada/Cancelada por Modificação';
+    if (kNorm === 'cancelada') k = 'Cancelada/Cancelada por Modificação';
+    if (!byStatus[k]) byStatus[k] = { qtd: 0, receita: 0 };
+    byStatus[k].qtd++;
+    byStatus[k].receita += r.total;
+  });
+  const statuses = Object.entries(byStatus).sort((a,b) => b[1].qtd - a[1].qtd);
+  const totalStatusQtd = statuses.reduce((s, [,v]) => s + v.qtd, 0);
+  const totalStatusRec = statuses.reduce((s, [,v]) => s + v.receita, 0);
+
+  // Stayinn
+  const totalComissao = dados.reduce((s, r) => s + (isInativo(r.status) ? 0 : r.comissao), 0);
+  const totalLiquido = dados.reduce((s, r) => s + (isInativo(r.status) ? 0 : r.liquido), 0);
+  const totalRoyalties = dados.reduce((s, r) => s + (isInativo(r.status) ? 0 : r.royalties), 0);
+  const totalStayinn = dados.reduce((s, r) => s + (isInativo(r.status) ? 0 : r.stayinn), 0);
+
+  let html = '';
+
+  html += `<div class="kpis">
+    <div class="kpi-card">
+      <div class="kpi-label">Reservas Ativas</div>
+      <div class="kpi-value">${totalReservas}</div>
+      <div class="kpi-sub">de ${reservas.length} no total</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Receita Bruta</div>
+      <div class="kpi-value">${brl(receitaBruta)}</div>
+      <div class="kpi-sub">excluindo cancelados</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Diária Média</div>
+      <div class="kpi-value">${brl(adr)}</div>
+      <div class="kpi-sub">${totalNoites} noites</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">${totalRoomNights > 0 ? 'Taxa de Ocupação' : 'Total Noites'}</div>
+      <div class="kpi-value">${totalRoomNights > 0 ? ocupacao.toFixed(1) + '%' : totalNoites}</div>
+      <div class="kpi-sub">${totalRoomNights > 0 ? `de ${totalRoomNights} disponíveis` : 'soma das estadias'}</div>
+    </div>
+  </div>`;
+
+  html += `<div class="section">
+    <div class="section-title">Venda por Canal</div>
+    <div class="grid-2">
+      <div>
+        <table>
+          <thead><tr>
+            <th>Canal</th><th class="center">Reservas</th><th class="center">% Total</th><th class="right">Receita</th>
+          </tr></thead>
+          <tbody>`;
+  canais.forEach(([nome, v]) => {
+    const pct = totalCanalReservas ? (v.reservas / totalCanalReservas) * 100 : 0;
+    const barW = (v.reservas / maxCanal) * 100;
+    html += `<tr>
+      <td><strong>${nome}</strong></td>
+      <td class="center">${v.reservas}</td>
+      <td class="center">
+        <div class="bar-cell">
+          <span style="min-width:36px">${pct.toFixed(1)}%</span>
+          <span class="mini-bar"><span class="mini-bar-fill" style="width:${barW}%"></span></span>
+        </div>
+      </td>
+      <td class="right">${brl(v.receita)}</td>
+    </tr>`;
+  });
+  html += `<tr class="total">
+    <td>TOTAL</td><td class="center">${totalCanalReservas}</td>
+    <td class="center">100,0%</td><td class="right">${brl(totalCanalReceita)}</td>
+  </tr></tbody></table>
+      </div>
+      <div><div class="chart-container"><canvas id="chartCanal"></canvas></div></div>
+    </div>
+  </div>`;
+
+  html += `<div class="section">
+    <div class="section-title">Status das Reservas</div>
+    <div class="grid-2">
+      <div>
+        <table>
+          <thead><tr>
+            <th>Status</th><th class="center">Qtd</th><th class="center">% Total</th><th class="right">Receita</th>
+          </tr></thead>
+          <tbody>`;
+  statuses.forEach(([nome, v]) => {
+    const pct = totalStatusQtd ? (v.qtd / totalStatusQtd) * 100 : 0;
+    const badgeClass = statusBadgeFor(nome);
+    html += `<tr>
+      <td><span class="badge ${badgeClass}">${nome}</span></td>
+      <td class="center">${v.qtd}</td>
+      <td class="center">${pct.toFixed(1)}%</td>
+      <td class="right">${brl(v.receita)}</td>
+    </tr>`;
+  });
+  html += `<tr class="total">
+    <td>TOTAL</td><td class="center">${totalStatusQtd}</td>
+    <td class="center">100,0%</td><td class="right">${brl(totalStatusRec)}</td>
+  </tr></tbody></table>
+      </div>
+      <div><div class="chart-container"><canvas id="chartStatus"></canvas></div></div>
+    </div>
+  </div>`;
+
+  html += `<div class="stayinn">
+    <div class="section-title">💼 Repasses Stayinn (royalty ${settings.royalty}%)</div>
+    <div style="text-align:center; padding: 16px 0 8px;">
+      <div style="font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:12px;">Total a Pagar Stayinn</div>
+      <div style="font-size:52px; font-weight:800; letter-spacing:-1px; color:#fff;">${brl2(totalRoyalties)}</div>
+    </div>
+  </div>`;
+
+  document.getElementById('dashboard').innerHTML = html;
+
+  // Charts
+  const colors = ['#0F2747','#C8A95E','#1976D2','#2D7A4F','#D4A03E','#B83A3A','#6C5CE7','#999','#5B7B9A','#A0826D','#7CA9C9','#888'];
+
+  const ctxC = document.getElementById('chartCanal');
+  if (ctxC) {
+    new Chart(ctxC, {
+      type: 'doughnut',
+      data: {
+        labels: canais.filter(c => c[1].reservas > 0).map(c => c[0]),
+        datasets: [{
+          data: canais.filter(c => c[1].reservas > 0).map(c => c[1].reservas),
+          backgroundColor: colors, borderColor: '#FFFFFF', borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { font: { size: 11 }, padding: 10, usePointStyle: true } },
+          tooltip: { callbacks: {
+            label: ctx => `${ctx.label}: ${ctx.parsed} (${((ctx.parsed/totalCanalReservas)*100).toFixed(1)}%)`
+          }}
+        },
+        cutout: '60%'
+      }
+    });
+  }
+
+  const ctxS = document.getElementById('chartStatus');
+  if (ctxS) {
+    const statusColors = statuses.map(([nome]) => {
+      const map = {'hospedado':'#2D7A4F','encerrada':'#6B7280','confirmada':'#1976D2',
+        'emanalise':'#D4A03E','cancelada':'#B83A3A','noshow':'#B83A3A','nova':'#7F77DD',
+        'cancelada/canceladapormodificação':'#B83A3A'};
+      return map[normStatus(nome)] || '#888';
+    });
+    new Chart(ctxS, {
+      type: 'bar',
+      data: {
+        labels: statuses.map(s => s[0]),
+        datasets: [{ label: 'Reservas', data: statuses.map(s => s[1].qtd),
+          backgroundColor: statusColors, borderRadius: 6 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#F0F0F0' }, ticks: { font: { size: 11 } } },
+          y: { grid: { display: false }, ticks: { font: { size: 12, weight: 600 } } }
+        }
+      }
+    });
+  }
+}
+
+// ============= INIT =============
+document.getElementById('unidade-input').addEventListener('blur', saveState);
+document.getElementById('periodo-input').addEventListener('blur', saveState);
+
+loadSettings();
+if (!loadState()) {
+  document.getElementById('dashboard').innerHTML = emptyState();
+} else {
+  renderAll();
+}
+</script>
+</body>
+</html>
