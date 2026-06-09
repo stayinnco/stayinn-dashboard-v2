@@ -349,12 +349,46 @@
   }
 
   @media print {
-    .upload-zone, .settings-panel, .hero-actions, .footer { display: none !important; }
+    @page { size: A3 landscape; margin: 8mm; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .upload-zone, .settings-panel, .hero-actions, .profile-bar, .no-print { display: none !important; }
+    body { background: white; font-size: 11px; }
     .container { max-width: 100%; padding: 0; }
-    body { background: white; }
-    .section, .kpi-card { box-shadow: none; }
-    .hero { background: var(--navy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .stayinn { background: var(--navy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Hero compacto */
+    .hero { padding: 10px 20px !important; margin-bottom: 6px; }
+    .hero .brand { font-size: 9px; }
+    .hero h1 { font-size: 20px; }
+    .hero .period { font-size: 10px; margin-top: 2px; }
+
+    /* KPIs em linha */
+    .kpis { grid-template-columns: repeat(4, 1fr) !important; gap: 6px; margin-bottom: 6px; }
+    .kpi-card { padding: 8px 12px; box-shadow: none; }
+    .kpi-label { font-size: 8px; }
+    .kpi-value { font-size: 18px; }
+    .kpi-sub { font-size: 8px; }
+
+    /* Seções compactas */
+    .section { padding: 10px 14px; margin-bottom: 6px; box-shadow: none; }
+    .section-title { font-size: 10px; margin-bottom: 8px; padding-bottom: 6px; }
+
+    /* Canal e Status lado a lado */
+    .grid-2 { grid-template-columns: 1fr 1fr !important; gap: 6px; }
+
+    /* Tabelas menores */
+    table { font-size: 9px; }
+    td, th { padding: 3px 6px !important; }
+
+    /* Gráficos menores */
+    .chart-container { height: 140px !important; }
+
+    /* Stayinn compacto */
+    .stayinn { margin-bottom: 0; }
+    .pix-section { padding: 12px 20px; gap: 24px; }
+    .pix-value { font-size: 36px; }
+    .pix-qr-wrap img { width: 120px !important; height: 120px !important; }
+    .pix-qr-label { font-size: 10px; }
+    .pix-label { font-size: 9px; }
   }
 
   @media (max-width: 900px) {
